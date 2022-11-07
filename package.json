@@ -1,0 +1,14 @@
+{
+  "name": "robopenguin",
+  "version": "1.0.0",
+  "author": "Matt Headley <mattscottheadley@gmail.com>",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.6.0",
+    "sequelize": "^6.25.3",
+    "sqlite3": "^5.1.2"
+  }
+}
