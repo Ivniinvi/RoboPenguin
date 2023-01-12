@@ -17,9 +17,27 @@ const Tags = sequelize.define('tags', {
         discordid: {
                 type: Sequelize.STRING,
                 allowNull: false,
-                unique: true,
         },
         entry: Sequelize.TEXT,
+	type: Sequelize.INTEGER,
+});
+
+const persistedRoles = sequelize.define('persistedRoles', {
+	id: {
+		type: Sequelize.INTEGER,
+		autoIncrement: true,
+		primaryKey: true,
+	},
+	discordid: {
+		type: Sequelize.STRING,
+		allowNull: false,
+		unique: true,
+	},
+	persistedroles: {
+		type: Sequelize.STRING,
+		allowNull: false,
+	},
 });
 
 exports.db = Tags;
+exports.rolepersistTable = persistedRoles;

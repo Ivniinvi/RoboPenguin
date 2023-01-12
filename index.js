@@ -6,7 +6,7 @@ const { token } = require('./config.json');
 const database = require('./db.js');
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 client.commands = new Collection();
 
@@ -24,56 +24,18 @@ for (const file of commandFiles) {
 	}
 }
 
-client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-	const command = interaction.client.commands.get(interaction.commandName);
-
-	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
 	}
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	}
-});
-
-const mmRegExp = /ModMail Channel (\d+)/
-
-client.on(Events.ChannelCreate, async channel => {
-	if(channel.constructor.name === "TextChannel") {
-		match = mmRegExp.exec(channel.topic);
-		if(match[1]) {
-			const content = await database.db.findOne({ where: { discordid: match[1] } });
-			if(content.get('entry')){
-				await new Promise(res => setTimeout(res, 2000));
-				channel.send({
-					"content": "",
-					"embeds": [
-						{
-							"type": "rich",
-							"title": `⚠️ Watchlist detected! ⚠️`,
-							"description": `This user has an active watchlist: ${content.get('entry')}`,
-							"color": 0xffff00
-						}
-					]
-				})
-			}
-		}
-	}
-
-});
-
-// When the client is ready, run this code (only once)
-// We use 'c' for the event parameter to keep it separate from the already defined 'client'
-client.once(Events.ClientReady, c => {
-	database.db.sync();
-	console.log(`Ready! Logged in as ${c.user.tag}`);
-});
+}
 
 // Log in to Discord with your client's token
 client.login(token);
